@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ALTA — Interactive Showcase</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --ink:#1b1a18; --mute:#817d76; --faint:#b6b1a9; --line:#cfcbc3;
+  --paper:#f3f2ef; --stage:#dedbd5; --card:#e9e7e2;
+  --ui:'Jost',system-ui,-apple-system,sans-serif;
+}
+body{font-family:var(--ui);font-weight:300;color:var(--ink);background:var(--paper);line-height:1.55;
+  overflow-x:hidden;-webkit-font-smoothing:antialiased;overscroll-behavior-x:none;text-size-adjust:100%}
+svg{display:block}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+input,select{font:inherit;color:inherit}
+::selection{background:var(--ink);color:var(--paper)}
+.u{text-transform:uppercase;letter-spacing:.26em;font-size:10px;font-weight:400}
+.wrap{padding:0 clamp(16px,4.5vw,56px)}
+.gimg{display:block;object-fit:contain}
+
+/* ---------------- header ---------------- */
+header{position:fixed;top:0;left:0;right:0;z-index:60;display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:20px clamp(16px,4.5vw,56px);
+  padding-left:max(clamp(16px,4.5vw,56px),env(safe-area-inset-left));
+  padding-right:max(clamp(16px,4.5vw,56px),env(safe-area-inset-right));
+  padding-top:max(20px,env(safe-area-inset-top));
+  background:rgba(243,242,239,0);transition:background .4s,backdrop-filter .4s,padding .4s,opacity .3s}
+header.stuck{background:rgba(243,242,239,.86);backdrop-filter:blur(14px);padding-block:14px}
+header.hide{opacity:0;pointer-events:none}
+.mark{font-size:clamp(14px,1.5vw,17px);letter-spacing:.46em;text-indent:.46em;font-weight:400}
+header nav{display:flex;gap:clamp(16px,2.4vw,34px)}
+header nav a{text-transform:uppercase;letter-spacing:.2em;font-size:10px;padding-bottom:4px;border-bottom:1px solid transparent}
+header nav a.on,header nav a:hover{border-color:var(--ink)}
+.tools{display:flex;align-items:center;gap:clamp(14px,2vw,26px)}
+.tools button{text-transform:uppercase;letter-spacing:.2em;font-size:10px;display:flex;align-items:center;gap:8px}
+.tools button:hover{opacity:.55}
+.bars{display:inline-flex;flex-direction:column;gap:4px;width:16px}
+.bars i{height:1px;background:var(--ink);display:block}
+.bars i:last-child{width:11px;align-self:flex-end}
+
+/* ---------------- intro ---------------- */
+.intro{min-height:100vh;min-height:100svh;display:grid;place-items:center;text-align:center;padding:90px 20px 40px}
+.intro h1{font-size:clamp(42px,11vw,124px);letter-spacing:.3em;text-indent:.3em;font-weight:200;line-height:1}
+.intro .sub{margin-top:18px;color:var(--mute)}
+.intro .rule{width:min(560px,80vw);height:1px;background:var(--line);margin:40px auto}
+.intro .pair{font-size:clamp(14px,2.4vw,22px);letter-spacing:.3em;text-transform:uppercase}
+.intro .hint{margin-top:16px;color:var(--faint)}
+.scrolldot{margin-top:52px;display:flex;flex-direction:column;align-items:center;gap:10px;color:var(--faint)}
+.scrolldot i{width:1px;height:46px;background:linear-gradient(var(--line),transparent);display:block;animation:drop 2.4s infinite}
+@keyframes drop{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}51%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+
+/* ---------------- showcase ---------------- */
+.showcase{background:var(--stage);position:relative;overflow:hidden;
+  background-image:radial-gradient(120% 90% at 32% 36%,#eae8e3 0%,rgba(222,219,213,0) 62%)}
+.stage{position:relative;height:clamp(430px,66vh,660px);touch-action:pan-y;overflow:hidden}
+.rail{position:absolute;left:-6%;right:-6%;height:1px;background:var(--ink);opacity:.5;transform-origin:left center;z-index:1}
+.rail::before,.rail::after{content:'';position:absolute;top:-5px;width:1px;height:11px;background:var(--ink)}
+.rail::before{left:0}.rail::after{right:0}
+.hang{position:absolute;top:0;left:0;cursor:pointer;z-index:2;transition:transform .85s cubic-bezier(.19,.78,.22,1),opacity .6s}
+.hang svg,.hang .gimg{width:100%;height:auto;filter:drop-shadow(0 26px 28px rgba(40,38,34,.18))}
+.hang.off{opacity:0;pointer-events:none}
+.idx{position:absolute;left:clamp(16px,4.5vw,56px);top:46%;z-index:4;display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--mute)}
+.idx span{font-size:10px;letter-spacing:.2em;font-variant-numeric:tabular-nums}
+.idx i{width:1px;height:26px;background:var(--line);display:block}
+.sig{position:absolute;left:clamp(16px,4.5vw,56px);bottom:20px;z-index:4;color:var(--faint)}
+.detail{position:absolute;right:clamp(16px,4.5vw,56px);top:50%;transform:translateY(-50%);width:min(300px,30vw);z-index:20;position:relative}
+.showcase .detail{position:absolute}
+.detail .no{color:var(--mute);font-size:10px;letter-spacing:.2em;font-variant-numeric:tabular-nums}
+.detail h2{font-size:clamp(17px,1.8vw,22px);font-weight:300;letter-spacing:.17em;text-transform:uppercase;line-height:1.35;margin-top:14px}
+.detail .hr{width:30px;height:1px;background:var(--ink);margin:18px 0}
+.detail .desc{font-size:12.5px;color:var(--mute);max-width:30ch}
+.specs{margin-top:24px;border-top:1px solid var(--line)}
+.specs div{display:flex;justify-content:space-between;gap:14px;padding:9px 0;border-bottom:1px solid var(--line);
+  text-transform:uppercase;letter-spacing:.14em;font-size:9.5px}
+.specs div span:first-child{color:var(--faint)}
+.detail .view{display:inline-flex;align-items:center;gap:10px;margin-top:26px;padding-bottom:6px;
+  border-bottom:1px solid var(--ink);text-transform:uppercase;letter-spacing:.2em;font-size:10px;transition:gap .3s}
+.detail .view:hover{gap:16px}
+.pager{position:absolute;right:clamp(16px,4.5vw,56px);bottom:20px;z-index:5;display:flex;align-items:center;gap:20px}
+.pager button{width:34px;height:34px;display:grid;place-items:center;border:1px solid transparent;transition:border-color .3s}
+.pager button:hover{border-color:var(--line)}
+.pager .of{font-size:10px;letter-spacing:.2em;color:var(--mute);font-variant-numeric:tabular-nums}
+.arw{width:26px;height:1px;background:var(--ink);position:relative}
+.arw::after{content:'';position:absolute;top:-3px;width:7px;height:7px;border-top:1px solid var(--ink);border-right:1px solid var(--ink)}
+.arw.l::after{left:0;transform:rotate(-135deg)}
+.arw.r::after{right:0;transform:rotate(45deg)}
+.dots{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);z-index:5;display:flex;gap:7px}
+.dots button{width:14px;height:1px;background:var(--line);transition:background .3s,width .3s}
+.dots button.on{background:var(--ink);width:26px}
+
+/* ---------------- lineup ---------------- */
+.lineup{background:#fbfbfa;border-block:1px solid var(--line);padding:clamp(40px,6vw,76px) 0 0}
+.lrail{position:relative;margin-top:30px;padding:0 clamp(16px,4.5vw,56px) clamp(40px,6vw,76px)}
+.lbar{position:absolute;left:clamp(16px,4.5vw,56px);right:clamp(16px,4.5vw,56px);top:6px;height:1px;background:var(--line)}
+.ltrack{display:flex;gap:clamp(6px,1.4vw,22px);overflow-x:auto;scrollbar-width:none;padding-top:2px}
+.ltrack::-webkit-scrollbar{display:none}
+.ltrack article{flex:0 0 auto;width:clamp(92px,11vw,150px);cursor:pointer;transition:transform .5s}
+.ltrack article svg,.ltrack article .gimg{width:100%;height:auto}
+.ltrack article p{text-align:center;text-transform:uppercase;letter-spacing:.14em;font-size:9px;color:var(--mute);margin-top:10px;opacity:0;transition:opacity .4s}
+
+/* ---------------- headings / grid ---------------- */
+.shead{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;padding:clamp(48px,8vw,100px) 0 26px}
+.shead h3{font-size:clamp(20px,2.6vw,30px);font-weight:300;letter-spacing:.22em;text-transform:uppercase}
+.shead p{color:var(--mute);font-size:13px;max-width:36ch}
+.filters{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:14px 0}
+.chips{display:flex;gap:26px;overflow-x:auto;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chips button{text-transform:uppercase;letter-spacing:.2em;font-size:10px;color:var(--faint);white-space:nowrap;padding-bottom:3px;border-bottom:1px solid transparent}
+.chips button.on{color:var(--ink);border-color:var(--ink)}
+.selwrap{position:relative}
+.selwrap select{border:0;background:transparent;appearance:none;padding-right:20px;text-transform:uppercase;letter-spacing:.2em;font-size:10px;cursor:pointer}
+.selwrap::after{content:'';position:absolute;right:2px;top:40%;width:5px;height:5px;border-right:1px solid var(--ink);border-bottom:1px solid var(--ink);transform:rotate(45deg);pointer-events:none}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(14px,2.4vw,34px) clamp(10px,1.6vw,22px);padding:clamp(26px,4vw,48px) 0 clamp(60px,9vw,110px)}
+.card{position:relative}
+.frame{position:relative;aspect-ratio:4/5;background:var(--card);overflow:hidden;display:grid;place-items:center;padding:14px}
+.frame svg,.frame .gimg{height:100%;width:auto;max-width:100%;transition:transform .8s cubic-bezier(.19,.78,.22,1)}
+.tag{position:absolute;top:10px;left:10px;z-index:3;text-transform:uppercase;letter-spacing:.18em;font-size:8.5px;background:var(--paper);padding:4px 8px}
+.heart{position:absolute;top:8px;right:8px;z-index:3;width:28px;height:28px;display:grid;place-items:center;opacity:0;transition:opacity .3s}
+.heart svg{width:14px;height:14px;fill:none;stroke:var(--ink);stroke-width:1.1}
+.heart.on svg{fill:var(--ink)}
+.add{position:absolute;left:0;right:0;bottom:0;z-index:3;background:var(--paper);padding:11px;text-align:center;
+  text-transform:uppercase;letter-spacing:.2em;font-size:9.5px;transform:translateY(101%);transition:transform .4s cubic-bezier(.19,.78,.22,1)}
+.meta{display:flex;justify-content:space-between;gap:12px;align-items:baseline;padding-top:12px}
+.meta h4{font-size:11px;font-weight:300;text-transform:uppercase;letter-spacing:.14em}
+.meta .p{font-size:11px;letter-spacing:.1em;font-variant-numeric:tabular-nums;white-space:nowrap}
+.was{color:var(--faint);text-decoration:line-through;margin-right:6px}
+.sw{display:flex;gap:5px;padding-top:9px}
+.sw i{width:8px;height:8px;border:1px solid var(--line);display:block}
+
+/* ---------------- journal / trio / news / footer ---------------- */
+.journal{display:grid;grid-template-columns:1.1fr .9fr;border-top:1px solid var(--line)}
+.journal .im{background:var(--stage);display:grid;place-items:center;padding:clamp(30px,5vw,70px);min-height:62vh;position:relative;overflow:hidden}
+.journal .im .rl{position:absolute;left:8%;right:8%;top:14%;height:1px;background:var(--ink);opacity:.4}
+.journal .im svg,.journal .im .gimg{height:min(52vh,430px);width:auto;position:relative;filter:drop-shadow(0 22px 26px rgba(40,38,34,.18))}
+.journal .tx{padding:clamp(28px,6vw,86px);display:flex;flex-direction:column;justify-content:center;border-left:1px solid var(--line)}
+.journal .tx h3{font-size:clamp(20px,2.8vw,34px);font-weight:300;text-transform:uppercase;letter-spacing:.2em;line-height:1.4;margin:16px 0 20px}
+.journal .tx p{color:var(--mute);font-size:13.5px;max-width:42ch;margin-bottom:30px}
+.btn{display:inline-block;border:1px solid var(--ink);padding:14px 34px;text-transform:uppercase;letter-spacing:.24em;font-size:10px;align-self:flex-start;transition:background .3s,color .3s}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.trio{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border-block:1px solid var(--line)}
+.trio article{background:var(--paper);padding:clamp(26px,3.6vw,52px);min-height:38vh;display:flex;flex-direction:column;justify-content:space-between;gap:26px}
+.trio h4{font-size:clamp(14px,1.6vw,17px);font-weight:300;text-transform:uppercase;letter-spacing:.18em;line-height:1.6;margin-top:12px}
+.trio p{color:var(--mute);font-size:12.5px}
+.news{padding:clamp(56px,9vw,124px) clamp(16px,4.5vw,56px);text-align:center;background:var(--stage)}
+.news h3{font-size:clamp(20px,3vw,34px);font-weight:300;text-transform:uppercase;letter-spacing:.3em}
+.news p{color:var(--mute);font-size:13px;margin:16px auto 32px;max-width:44ch}
+.news form{display:flex;max-width:420px;margin:0 auto;border-bottom:1px solid var(--ink)}
+.news input{flex:1;border:0;background:transparent;padding:12px 2px;font-size:12.5px;outline:none;letter-spacing:.08em}
+.news button{text-transform:uppercase;letter-spacing:.2em;font-size:10px}
+.news .ok{font-size:11.5px;color:var(--mute);margin-top:16px;min-height:18px;letter-spacing:.1em}
+footer{padding:clamp(44px,6vw,80px) clamp(16px,4.5vw,56px) 26px;padding-bottom:max(26px,calc(env(safe-area-inset-bottom) + 18px))}
+.fcols{display:grid;grid-template-columns:repeat(4,1fr) 1.2fr;gap:36px}
+.fcols h5{text-transform:uppercase;letter-spacing:.22em;font-size:9.5px;margin-bottom:18px}
+.fcols li{list-style:none;margin-bottom:10px}
+.fcols a{font-size:12.5px;color:var(--mute)}
+.fcols a:hover{color:var(--ink)}
+.fmark{font-size:16px;letter-spacing:.46em;text-indent:.46em}
+.fbot{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-top:52px;padding-top:20px;border-top:1px solid var(--line)}
+.fbot span{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint)}
+
+/* ---------------- overlays ---------------- */
+.scrim{position:fixed;inset:0;background:rgba(27,26,24,.34);opacity:0;pointer-events:none;transition:opacity .4s;z-index:70}
+.scrim.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(420px,100%);background:var(--paper);z-index:95;
+  padding-top:env(safe-area-inset-top);
+  transform:translateX(101%);transition:transform .5s cubic-bezier(.19,.78,.22,1);display:flex;flex-direction:column}
+.drawer.on{transform:none}
+.dhead{display:flex;justify-content:space-between;align-items:center;padding:22px;border-bottom:1px solid var(--line)}
+.dbody{flex:1;overflow-y:auto;padding:0 22px}
+.dfoot{border-top:1px solid var(--line);padding:22px;padding-bottom:max(22px,calc(env(safe-area-inset-bottom) + 14px))}
+.x{text-transform:uppercase;letter-spacing:.2em;font-size:10px}
+.line{display:flex;gap:16px;padding:20px 0;border-bottom:1px solid var(--line)}
+.line .th{width:72px;flex:0 0 72px;aspect-ratio:4/5;background:var(--card);display:grid;place-items:center;padding:6px}
+.line .th svg,.line .th .gimg{height:100%;width:auto}
+.line .info{flex:1;display:flex;flex-direction:column;gap:6px}
+.line .info b{font-weight:300;font-size:11px;text-transform:uppercase;letter-spacing:.14em}
+.line .info small{color:var(--faint);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase}
+.qty{display:flex;align-items:center;gap:14px;margin-top:auto}
+.qty button{width:22px;height:22px;border:1px solid var(--line);display:grid;place-items:center;font-size:13px;line-height:1}
+.qty span{font-size:11px;font-variant-numeric:tabular-nums}
+.rm{margin-left:auto;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);border-bottom:1px solid var(--line)}
+.tot{display:flex;justify-content:space-between;font-size:11px;text-transform:uppercase;letter-spacing:.16em;margin-bottom:8px}
+.tot.big{margin:16px 0 20px;padding-top:16px;border-top:1px solid var(--line);font-size:12px}
+.solid{display:block;width:100%;background:var(--ink);color:var(--paper);padding:17px;text-align:center;text-transform:uppercase;letter-spacing:.26em;font-size:10px}
+.solid:hover{opacity:.84}
+.empty{text-align:center;color:var(--faint);font-size:12px;letter-spacing:.14em;text-transform:uppercase;padding:80px 0}
+
+/* ---------------- product panel (full screen) ---------------- */
+.pdp{position:fixed;inset:0;z-index:90;background:var(--paper);overflow-y:auto;-webkit-overflow-scrolling:touch;
+  transform:translateY(100%);opacity:0;visibility:hidden;
+  transition:transform .55s cubic-bezier(.19,.78,.22,1),opacity .4s,visibility .55s}
+.pdp.on{transform:none;opacity:1;visibility:visible}
+.pdp-bar{position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;
+  padding:18px clamp(16px,4.5vw,56px);padding-top:max(18px,calc(env(safe-area-inset-top) + 8px));
+  background:rgba(243,242,239,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.pdp-in{display:grid;grid-template-columns:1.05fr .95fr;align-items:start}
+.pdp-media{background:var(--stage);position:relative;overflow:hidden;
+  background-image:radial-gradient(110% 80% at 38% 34%,#eceae5 0%,rgba(222,219,213,0) 64%);
+  min-height:min(74vh,720px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
+  padding:clamp(24px,4vw,56px)}
+.viewer{width:min(420px,76%);cursor:grab;touch-action:pan-y;user-select:none}
+.viewer.drag{cursor:grabbing}
+.viewer svg,.viewer .gimg{width:100%;height:auto;filter:drop-shadow(0 28px 30px rgba(40,38,34,.2))}
+.views{display:flex;gap:1px;background:var(--line);border:1px solid var(--line)}
+.views button{background:var(--paper);padding:11px 16px;text-transform:uppercase;letter-spacing:.18em;font-size:9px;color:var(--mute)}
+.views button.on{background:var(--ink);color:var(--paper)}
+.spin{display:flex;align-items:center;gap:10px;color:var(--faint)}
+.spin i{width:30px;height:1px;background:var(--line);display:block}
+.pdp-info{padding:clamp(26px,4.4vw,64px);display:flex;flex-direction:column;gap:20px}
+.pdp-info .no{color:var(--faint);font-size:10px;letter-spacing:.24em;text-transform:uppercase;font-variant-numeric:tabular-nums}
+.pdp-info h2{font-size:clamp(20px,2.6vw,30px);font-weight:300;text-transform:uppercase;letter-spacing:.2em;line-height:1.35}
+.pdp-info .pr{font-size:15px;letter-spacing:.14em;font-variant-numeric:tabular-nums}
+.pdp-info .dsc{color:var(--mute);font-size:13px;max-width:46ch}
+.sizes{display:flex;gap:8px;flex-wrap:wrap}
+.sizes button{min-width:50px;border:1px solid var(--line);padding:13px 8px;font-size:10px;letter-spacing:.16em}
+.sizes button.on{border-color:var(--ink);background:var(--ink);color:var(--paper)}
+.sizes button[disabled]{color:#c6c2bb;cursor:not-allowed;text-decoration:line-through}
+.note{font-size:10px;color:var(--faint);letter-spacing:.14em;text-transform:uppercase}
+.acc{border-top:1px solid var(--line)}
+.acc details{border-bottom:1px solid var(--line)}
+.acc summary{list-style:none;cursor:pointer;padding:15px 0;text-transform:uppercase;letter-spacing:.18em;font-size:10px;display:flex;justify-content:space-between}
+.acc summary::-webkit-details-marker{display:none}
+.acc summary::after{content:'+';color:var(--faint)}
+.acc details[open] summary::after{content:'–'}
+.acc p{color:var(--mute);font-size:12.5px;padding-bottom:16px;max-width:46ch}
+
+.menu{position:fixed;inset:0;background:var(--paper);z-index:96;transform:translateX(-101%);
+  transition:transform .5s cubic-bezier(.19,.78,.22,1);padding:22px;overflow:auto;
+  padding-top:max(22px,calc(env(safe-area-inset-top) + 10px))}
+.menu.on{transform:none}
+.menu a{display:block;font-size:22px;letter-spacing:.24em;text-transform:uppercase;font-weight:300;padding:18px 0;border-bottom:1px solid var(--line)}
+.search{position:fixed;inset:0;background:var(--paper);z-index:96;opacity:0;pointer-events:none;transition:opacity .35s;
+  padding:clamp(18px,4.5vw,56px);padding-top:max(clamp(18px,4.5vw,56px),calc(env(safe-area-inset-top) + 12px));overflow:auto}
+.search.on{opacity:1;pointer-events:auto}
+.search input{width:100%;border:0;border-bottom:1px solid var(--ink);font-size:clamp(20px,4vw,42px);font-weight:200;
+  letter-spacing:.14em;padding:16px 0;outline:none;background:transparent;text-transform:uppercase}
+.sres{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;margin-top:38px}
+.toast{position:fixed;left:50%;bottom:calc(28px + env(safe-area-inset-bottom));transform:translate(-50%,160%);
+  background:var(--ink);color:var(--paper);padding:14px 26px;z-index:99;
+  transition:transform .45s cubic-bezier(.19,.78,.22,1);font-size:9.5px;letter-spacing:.24em;text-transform:uppercase}
+.toast.on{transform:translate(-50%,0)}
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .9s,transform .9s}
+.reveal.in{opacity:1;transform:none}
+
+/* ================= responsive ================= */
+@media (hover:hover) and (pointer:fine){
+  .card:hover .frame svg,.card:hover .frame .gimg{transform:translateY(6px) scale(1.04)}
+  .card:hover .heart{opacity:1}
+  .card:hover .add{transform:none}
+  .ltrack article:hover{transform:translateY(8px)}
+  .ltrack article:hover p{opacity:1}
+}
+@media (hover:none),(pointer:coarse){
+  .add{position:static;transform:none;background:transparent;text-align:left;padding:10px 0 0;letter-spacing:.18em}
+  .heart{opacity:1}
+  .ltrack article p{opacity:1}
+  .tools button,.chips button,.sizes button,.views button{min-height:44px;display:inline-flex;align-items:center;justify-content:center}
+  .pager button{width:46px;height:46px}
+  .qty button{width:30px;height:30px}
+  .ltrack{scroll-snap-type:x proximity}
+  .ltrack article{scroll-snap-align:center}
+}
+@media(min-width:1500px){ .grid,.sres{grid-template-columns:repeat(5,1fr)} .detail{width:min(330px,26vw)} }
+@media(max-width:1180px){ header nav{gap:18px} }
+@media(max-width:1024px){
+  header nav{display:none}
+  .grid,.sres{grid-template-columns:repeat(3,1fr)}
+  .journal,.pdp-in{grid-template-columns:1fr}
+  .journal .tx{border-left:0;border-top:1px solid var(--line)}
+  .journal .im{min-height:50vh}
+  .trio{grid-template-columns:1fr}
+  .fcols{grid-template-columns:repeat(3,1fr)}
+  .detail{position:static;transform:none;width:auto;max-width:520px;padding:4px clamp(16px,4.5vw,56px) 24px}
+  .stage{height:clamp(380px,48vh,560px)}
+  .pager{position:static;padding:0 clamp(16px,4.5vw,56px) 24px}
+  .dots{position:static;transform:none;justify-content:center;padding-bottom:22px}
+  .sig{display:none}
+  .pdp-media{min-height:52vh}
+  .viewer{width:min(340px,66%)}
+}
+@media(max-width:760px){
+  .grid,.sres{grid-template-columns:repeat(2,1fr)}
+  .fcols{grid-template-columns:1fr 1fr}
+  .tools .hs{display:none}
+  .mark{letter-spacing:.34em;text-indent:.34em}
+  .idx{display:none}
+  .intro h1{letter-spacing:.2em;text-indent:.2em}
+  .news form{max-width:100%}
+  .shead{padding-top:clamp(40px,8vw,70px)}
+}
+@media(max-width:430px){
+  .grid{gap:20px 10px}
+  .fcols{grid-template-columns:1fr;gap:30px}
+  .stage{height:clamp(320px,44svh,430px)}
+  .tools{gap:13px}
+  .tools button{font-size:9px;letter-spacing:.14em}
+  .trio article{min-height:0}
+  .drawer{width:100%}
+  .sizes button{flex:1 0 auto}
+  .menu a{font-size:19px}
+  .detail h2{font-size:16px}
+  .views button{flex:1;padding:11px 8px}
+  .viewer{width:78%}
+}
+@media(max-height:520px) and (orientation:landscape){
+  .intro{min-height:auto;padding:104px 20px 46px}
+  .scrolldot{display:none}
+  .stage{height:86svh}
+  .journal .im{min-height:auto;padding:30px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+</style>
+</head>
+<body>
+
+<header id="hd">
+  <div style="display:flex;align-items:center;gap:clamp(18px,3vw,46px)">
+    <a href="#" class="mark">ALTA</a>
+    <nav>
+      <a href="#showcase" class="on">Clothing</a>
+      <a href="#edit">Accessory</a>
+      <a href="#journal">Journal</a>
+      <a href="#about">About</a>
+    </nav>
+  </div>
+  <div class="tools">
+    <button id="sb" class="hs">Search</button>
+    <button id="cb">Bag <span id="cc">(0)</span></button>
+    <button id="mb">Menu <span class="bars"><i></i><i></i></span></button>
+  </div>
+</header>
+
+<section class="intro">
+  <div>
+    <h1>ALTA</h1>
+    <p class="u sub">Interactive showcase</p>
+    <div class="rule"></div>
+    <p class="pair">Clothing &nbsp;/&nbsp; Accessory</p>
+    <p class="u hint">Scroll — Select — Explore</p>
+    <div class="scrolldot"><i></i><span class="u">Begin</span></div>
+  </div>
+</section>
+
+<section class="showcase" id="showcase">
+  <div class="stage" id="stage">
+    <div class="rail" id="railline"></div>
+    <div class="idx"><span id="ixa">01</span><i></i><span id="ixb">16</span></div>
+    <p class="u sig">ALTA Collection / Autumn</p>
+    <div class="dots" id="dots"></div>
+  </div>
+  <div class="detail" id="detail"></div>
+  <div class="pager">
+    <button id="prev" aria-label="Previous"><span class="arw l"></span></button>
+    <span class="of" id="of"></span>
+    <button id="next" aria-label="Next"><span class="arw r"></span></button>
+  </div>
+</section>
+
+<section class="lineup">
+  <div class="wrap" style="display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap">
+    <h3 class="u" style="font-size:11px">The full rail</h3>
+    <p class="u" style="color:var(--faint)">Drag sideways to browse</p>
+  </div>
+  <div class="lrail"><div class="lbar"></div><div class="ltrack" id="ltrack"></div></div>
+</section>
+
+<main class="wrap" id="edit">
+  <div class="shead reveal">
+    <h3>The edit</h3>
+    <p>Fabric-led pieces cut close to the body, finished by hand in small runs.</p>
+  </div>
+  <div class="filters">
+    <div class="chips" id="chips"></div>
+    <div class="selwrap">
+      <select id="sort">
+        <option value="new">Sort — newest</option>
+        <option value="lo">Price — ascending</option>
+        <option value="hi">Price — descending</option>
+        <option value="az">Name — A to Z</option>
+      </select>
+    </div>
+  </div>
+  <div class="grid" id="grid"></div>
+</main>
+
+<section class="journal" id="journal">
+  <div class="im"><div class="rl"></div><div id="jart"></div></div>
+  <div class="tx reveal">
+    <p class="u" style="color:var(--faint)">Journal</p>
+    <h3>Wool, washed twice,<br>worn for years</h3>
+    <p>Our knitwear is milled in Biella and finished without softeners, so the hand improves rather than fades. Cut generously through the shoulder, narrow at the cuff, and designed to be repaired rather than replaced.</p>
+    <a class="btn" href="#edit">Read the note</a>
+  </div>
+</section>
+
+<section class="trio" id="about">
+  <article class="reveal"><div><p class="u" style="color:var(--faint)">Studio</p><h4>Made in small runs, restocked rarely</h4></div><p>Every style begins as a single pattern, graded by hand and sampled until it falls correctly on the body.</p></article>
+  <article class="reveal"><div><p class="u" style="color:var(--faint)">Fabric</p><h4>Mills chosen before shapes are drawn</h4></div><p>Linen from Normandy, wool from Biella, cotton grown and spun in the region where it is woven.</p></article>
+  <article class="reveal"><div><p class="u" style="color:var(--faint)">Care</p><h4>Repairs offered for as long as you own it</h4></div><p>Send a piece back and we will mend seams, replace buttons and re-press it at no charge.</p></article>
+</section>
+
+<section class="news">
+  <h3>Join the list</h3>
+  <p>Early access to collections, studio notes and private sales. No noise.</p>
+  <form id="nf"><input type="email" placeholder="Email address" required aria-label="Email address"><button type="submit">Subscribe</button></form>
+  <div class="ok" id="nok"></div>
+</section>
+
+<footer>
+  <div class="fcols">
+    <div><h5>Shop</h5><ul><li><a href="#edit">New in</a></li><li><a href="#edit">Women</a></li><li><a href="#edit">Men</a></li><li><a href="#edit">Accessories</a></li><li><a href="#edit">Gift cards</a></li></ul></div>
+    <div><h5>Help</h5><ul><li><a href="#">Delivery</a></li><li><a href="#">Returns</a></li><li><a href="#">Size guide</a></li><li><a href="#">Track order</a></li><li><a href="#">Contact</a></li></ul></div>
+    <div><h5>Studio</h5><ul><li><a href="#journal">Journal</a></li><li><a href="#about">Our mills</a></li><li><a href="#">Repairs</a></li><li><a href="#">Stores</a></li><li><a href="#">Careers</a></li></ul></div>
+    <div><h5>Follow</h5><ul><li><a href="#">Instagram</a></li><li><a href="#">Pinterest</a></li><li><a href="#">Newsletter</a></li></ul></div>
+    <div><div class="fmark">ALTA</div><p style="color:var(--mute);font-size:12px;margin-top:18px;max-width:30ch">Clothing for ordinary days, cut to outlast the season it was made for.</p></div>
+  </div>
+  <div class="fbot"><span>ALTA Studio — all rights reserved</span><span>Privacy · Terms · Cookies</span></div>
+</footer>
+
+<div class="scrim" id="scrim"></div>
+
+<aside class="drawer" id="cart" aria-label="Bag">
+  <div class="dhead"><span class="u">Shopping bag</span><button class="x" data-close>Close</button></div>
+  <div class="dbody" id="clines"></div>
+  <div class="dfoot" id="cfoot"></div>
+</aside>
+
+<section class="pdp" id="pdp" aria-label="Product"></section>
+
+<nav class="menu" id="menu">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:28px">
+    <span class="mark">ALTA</span><button class="x" data-close>Close</button>
+  </div>
+  <a href="#showcase" data-close>Clothing</a>
+  <a href="#edit" data-close>Accessory</a>
+  <a href="#journal" data-close>Journal</a>
+  <a href="#about" data-close>About</a>
+  <a href="#" data-close>Stores</a>
+  <a href="#" data-close>Account</a>
+</nav>
+
+<div class="search" id="search">
+  <div style="display:flex;justify-content:flex-end"><button class="x" data-close>Close</button></div>
+  <input id="sq" placeholder="Search" aria-label="Search">
+  <div class="sres" id="sres"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===================== garment rendering ===================== */
+let UID=0;
+const hex2rgb=h=>{h=h.replace('#','');if(h.length===3)h=h.split('').map(c=>c+c).join('');
+  return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];};
+const mix=(h,t,a)=>{const c=hex2rgb(h),d=hex2rgb(t);
+  return '#'+c.map((v,i)=>Math.round(v+(d[i]-v)*a).toString(16).padStart(2,'0')).join('');};
+
+/* body path, front details, back details, hem line, sleeve/detail zoom box */
+const G={
+ bomber:{d:"M104,64 L70,86 L56,154 L82,166 L94,122 L94,284 Q150,294 206,284 L206,122 L218,166 L244,154 L230,86 L196,64 Q150,86 104,64 Z",
+  f:'<path d="M112,67 Q150,86 188,67"/><path d="M150,86 L150,289"/><path d="M94,272 Q150,282 206,272"/><path d="M78,152 L92,158"/><path d="M222,152 L208,158"/>',
+  b:'<path d="M104,100 Q150,116 196,100"/><path d="M94,272 Q150,282 206,272"/>',z:"46 68 120 120"},
+ overshirt:{d:"M104,64 L72,84 L60,162 L86,174 L96,124 L96,316 L204,316 L204,124 L214,174 L240,162 L228,84 L196,64 Q150,86 104,64 Z",
+  f:'<path d="M150,86 L150,316"/><path d="M122,64 L150,88 L178,64"/><rect x="110" y="140" width="28" height="30" rx="1"/><rect x="162" y="140" width="28" height="30" rx="1"/><circle cx="150" cy="150" r="3"/><circle cx="150" cy="196" r="3"/><circle cx="150" cy="242" r="3"/>',
+  b:'<path d="M104,104 Q150,122 196,104"/><path d="M150,122 L150,316" stroke-dasharray="3 8"/>',z:"50 70 120 130"},
+ tee:{d:"M106,64 L78,78 L62,126 L88,138 L100,110 L100,266 L200,266 L200,110 L212,138 L238,126 L222,78 L194,64 Q150,84 106,64 Z",
+  f:'<path d="M118,66 Q150,88 182,66"/><path d="M118,72 Q150,94 182,72"/>',
+  b:'<path d="M116,68 Q150,80 184,68"/>',z:"54 70 110 100"},
+ hoodie:{d:"M104,64 L70,84 L52,160 L78,172 L92,122 L92,292 L208,292 L208,122 L222,172 L248,160 L230,84 L196,64 Q150,88 104,64 Z",
+  f:'<path d="M110,68 Q150,30 190,68 Q150,92 110,68 Z"/><path d="M114,214 L186,214 L180,252 L120,252 Z"/><path d="M150,92 L150,130"/><path d="M92,278 L208,278"/>',
+  b:'<path d="M108,66 Q150,28 192,66"/><path d="M92,278 L208,278"/>',z:"46 70 125 125"},
+ coat:{d:"M106,64 L74,84 L58,182 L84,194 L94,128 L94,368 L206,368 L206,128 L216,194 L242,182 L226,84 L194,64 Q150,92 106,64 Z",
+  f:'<path d="M150,94 L122,64"/><path d="M150,94 L178,64"/><path d="M150,94 L150,368"/><circle cx="150" cy="160" r="3.4"/><circle cx="150" cy="206" r="3.4"/><circle cx="150" cy="252" r="3.4"/><path d="M110,230 L136,230"/><path d="M164,230 L190,230"/>',
+  b:'<path d="M104,110 Q150,128 196,110"/><path d="M150,128 L150,368"/><path d="M150,286 L150,368" stroke-width="2"/>',z:"50 74 125 135"},
+ knit:{d:"M104,64 L70,82 L46,172 L72,184 L92,124 L92,280 L208,280 L208,124 L228,184 L254,172 L230,82 L196,64 Q150,84 104,64 Z",
+  f:'<path d="M116,66 Q150,88 184,66"/><path d="M116,73 Q150,95 184,73"/><path d="M92,266 L208,266"/><path d="M118,124 L118,266" stroke-dasharray="2 7"/><path d="M150,110 L150,266" stroke-dasharray="2 7"/><path d="M182,124 L182,266" stroke-dasharray="2 7"/><path d="M58,166 L74,172"/><path d="M242,166 L226,172"/>',
+  b:'<path d="M114,68 Q150,82 186,68"/><path d="M92,266 L208,266"/><path d="M150,82 L150,266" stroke-dasharray="2 7"/>',z:"40 72 125 130"},
+ trouser:{d:"M104,66 L196,66 L202,200 L190,332 L158,332 L150,190 L142,332 L110,332 L98,200 Z",
+  f:'<path d="M104,84 L196,84"/><path d="M150,84 L150,190"/><path d="M128,200 L124,332"/><path d="M172,200 L176,332"/><path d="M106,96 L128,120"/><path d="M194,96 L172,120"/>',
+  b:'<path d="M104,84 L196,84"/><path d="M150,84 L150,190"/><rect x="112" y="98" width="26" height="20"/><rect x="162" y="98" width="26" height="20"/>',z:"92 230 120 110"},
+ skirt:{d:"M108,66 L192,66 L216,300 L84,300 Z",
+  f:'<path d="M108,82 L192,82"/><path d="M134,82 L124,300" stroke-dasharray="3 7"/><path d="M150,82 L150,300" stroke-dasharray="3 7"/><path d="M166,82 L176,300" stroke-dasharray="3 7"/>',
+  b:'<path d="M108,82 L192,82"/><path d="M150,82 L150,300"/>',z:"80 200 145 115"},
+ dress:{d:"M106,64 L84,80 L92,150 L70,358 L230,358 L208,150 L216,80 L194,64 Q150,86 106,64 Z",
+  f:'<path d="M118,66 Q150,88 182,66"/><path d="M98,152 Q150,168 202,152"/><path d="M150,88 L150,358" stroke-dasharray="3 8"/>',
+  b:'<path d="M116,68 Q150,82 184,68"/><path d="M150,82 L150,358"/>',z:"76 120 140 130"},
+ bag:{d:"M96,150 L204,150 L214,330 L86,330 Z",
+  f:'<path d="M120,150 Q150,74 180,150"/><path d="M96,186 L204,186"/><path d="M120,150 Q150,80 180,150" stroke-dasharray="2 6"/>',
+  b:'<path d="M120,150 Q150,74 180,150"/><path d="M150,150 L150,330" stroke-dasharray="3 8"/>',z:"88 130 130 120"}
+};
+
+/* view: front | side | back | zoom */
+function gsvg(p,opt){
+  opt=opt||{};
+  if(p.img && opt.view!=="zoom") return `<img class="gimg" src="${p.img}" alt="${p.n||''}" loading="lazy">`;
+  const g=G[p.k]||G.tee, id=++UID, v=opt.view||"front";
+  const light=mix(p.f,'#ffffff',.34), dark=mix(p.f,'#000000',.26), edge=p.ink;
+  const box = v==="zoom" ? g.z : "0 0 300 400";
+  const details = v==="back" ? g.b : g.f;
+  let tf="";
+  if(v==="side") tf='transform="translate(150,0) scale(.42,1) translate(-150,0)"';
+  if(v==="back") tf='transform="translate(300,0) scale(-1,1)"';
+  const hanger = v==="zoom" ? "" : `<g fill="none" stroke="${edge}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" opacity=".7">
+      <path d="M150,42 C150,30 139,30 139,20 C139,12 151,11 152,18"/><path d="M150,42 L101,68 L199,68 Z"/></g>`;
+  return `<svg viewBox="${box}" preserveAspectRatio="xMidYMid meet">
+  <defs>
+    <linearGradient id="f${id}" x1="0" y1="0" x2="1" y2=".9">
+      <stop offset="0" stop-color="${light}"/><stop offset=".42" stop-color="${p.f}"/><stop offset="1" stop-color="${dark}"/>
+    </linearGradient>
+    <linearGradient id="s${id}" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0" stop-color="#000" stop-opacity=".2"/><stop offset=".22" stop-color="#000" stop-opacity="0"/>
+      <stop offset=".72" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".24"/>
+    </linearGradient>
+    <clipPath id="c${id}"><path d="${g.d}"/></clipPath>
+  </defs>
+  ${hanger}
+  <g ${tf}>
+    <path d="${g.d}" fill="url(#f${id})"/>
+    <g clip-path="url(#c${id})">
+      <ellipse cx="116" cy="150" rx="54" ry="96" fill="#fff" opacity=".16"/>
+      <g fill="none" stroke="#000" opacity=".09" stroke-linecap="round">
+        <path d="M96,180 Q150,210 206,184" stroke-width="7"/>
+        <path d="M100,232 Q150,258 202,236" stroke-width="6"/>
+        <path d="M104,286 Q150,308 198,288" stroke-width="6"/>
+        <path d="M130,120 Q150,150 128,196" stroke-width="4"/>
+        <path d="M176,122 Q196,156 174,200" stroke-width="4"/>
+      </g>
+      <rect x="0" y="0" width="300" height="400" fill="url(#s${id})"/>
+    </g>
+    <path d="${g.d}" fill="none" stroke="${edge}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
+    <g fill="none" stroke="${edge}" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round" opacity=".6">${details}</g>
+  </g>
+</svg>`;
+}
+
+/* ===================== catalogue ===================== */
+/* PHOTOS: drop files in an "images" folder next to this file and set img,
+   e.g. img:"images/shell-bomber.png" — cut-out PNG, garment on a hanger.
+   Leave img:"" to keep the drawn version.                                */
+const P=[
+ {id:1,n:"Pale Over Shirt",p:95,was:0,k:"overshirt",c:"clothing",t:"New",f:"#d7d4ce",ink:"#56524c",cl:["#d7d4ce","#23221f","#f4f3f0"],mat:"Cotton / Silk",col:"Pale Grey",sz:"One / Two",d:"A quiet greige, cut deliberately away from the body so the fabric moves on its own.",img:""},
+ {id:2,n:"Shell Bomber",p:179,was:0,k:"bomber",c:"clothing",t:"",f:"#cfccc5",ink:"#56524c",cl:["#cfccc5","#23221f"],mat:"Nylon Shell",col:"Fog",sz:"S — XL",d:"Matte technical shell with a stand collar and a ribbed hem that holds its shape.",img:""},
+ {id:3,n:"Ink Overcoat",p:289,was:0,k:"coat",c:"clothing",t:"",f:"#2a2926",ink:"#0b0b0a",cl:["#23221f","#4a4845"],mat:"Virgin Wool",col:"Ink",sz:"S — XL",d:"Double-faced wool, dropped shoulder, concealed placket. Falls below the knee.",img:""},
+ {id:4,n:"Dry Cotton Tee",p:39,was:0,k:"tee",c:"clothing",t:"",f:"#f6f5f2",ink:"#aeaaa2",cl:["#f6f5f2","#23221f","#9aa3a0"],mat:"Organic Cotton",col:"Chalk",sz:"XS — XL",d:"Heavyweight jersey with a bound neck that keeps its edge through years of washing.",img:""},
+ {id:5,n:"Raw Hooded Sweat",p:119,was:0,k:"hoodie",c:"clothing",t:"New",f:"#4f4d49",ink:"#201f1d",cl:["#4a4845","#23221f","#cfccc5"],mat:"Loopback Cotton",col:"Slate",sz:"S — XL",d:"Loopback cotton, undyed thread, a hood cut tall enough to stand on its own.",img:""},
+ {id:6,n:"Biella Merino Knit",p:139,was:169,k:"knit",c:"clothing",t:"",f:"#c6c1b6",ink:"#7a756c",cl:["#c3beb3","#23221f","#9aa3a0"],mat:"Merino Wool",col:"Oat",sz:"XS — L",d:"Fine-gauge merino ribbed throughout, high on the neck, narrow at the cuff.",img:""},
+ {id:7,n:"Pleated Wide Trouser",p:109,was:0,k:"trouser",c:"clothing",t:"",f:"#34332f",ink:"#141413",cl:["#2e2d2a","#8d8578"],mat:"Wool Suiting",col:"Charcoal",sz:"26 — 36",d:"High rise with a single pressed crease and a generous leg through the ankle.",img:""},
+ {id:8,n:"Bias Column Dress",p:149,was:0,k:"dress",c:"clothing",t:"",f:"#e4e0d7",ink:"#a49f94",cl:["#e2ded5","#23221f"],mat:"Silk Satin",col:"Bone",sz:"XS — L",d:"Cut on the bias with adjustable straps and a narrow french hem.",img:""},
+ {id:9,n:"Knife Pleat Skirt",p:89,was:0,k:"skirt",c:"clothing",t:"",f:"#3f3e3a",ink:"#181817",cl:["#3a3936","#b8a893"],mat:"Poly Crepe",col:"Graphite",sz:"XS — L",d:"Pleats set into a flat waistband, finished with a hidden side zip.",img:""},
+ {id:10,n:"Field Overshirt",p:99,was:0,k:"overshirt",c:"clothing",t:"",f:"#6e6e5b",ink:"#3f3f33",cl:["#6b6b58","#23221f","#b8a893"],mat:"Cotton Canvas",col:"Olive",sz:"S — XL",d:"Garment-dyed canvas that softens with every wash and keeps its colour.",img:""},
+ {id:11,n:"Selvedge Straight",p:119,was:0,k:"trouser",c:"clothing",t:"",f:"#44505f",ink:"#1d2430",cl:["#3f4a58","#23221f"],mat:"Japanese Denim",col:"Indigo",sz:"28 — 36",d:"Rigid selvedge denim that fades into a pattern only you can make.",img:""},
+ {id:12,n:"Structured Tote",p:159,was:0,k:"bag",c:"accessory",t:"New",f:"#907254",ink:"#4e3b28",cl:["#8d6f52","#23221f"],mat:"Veg-Tan Leather",col:"Tan",sz:"One",d:"Unlined vegetable-tanned leather that softens into shape as you carry it.",img:""},
+ {id:13,n:"Lambswool Scarf",p:59,was:0,k:"knit",c:"accessory",t:"",f:"#bcac96",ink:"#7a6f5c",cl:["#b8a893","#23221f","#9aa3a0"],mat:"Lambswool",col:"Camel",sz:"One",d:"Brushed lambswool woven in Scotland, finished with a hand-knotted fringe.",img:""},
+ {id:14,n:"Quilted Short Jacket",p:139,was:0,k:"bomber",c:"clothing",t:"",f:"#2a2926",ink:"#0b0b0a",cl:["#23221f","#4a5a52"],mat:"Recycled Shell",col:"Black",sz:"XS — L",d:"Lightly quilted with a jersey-lined collar and a clean snap front.",img:""},
+ {id:15,n:"Poplin Shirt Dress",p:115,was:0,k:"dress",c:"clothing",t:"",f:"#fbfbf9",ink:"#b5b1a9",cl:["#fbfbf9","#9aa3a0"],mat:"Cotton Poplin",col:"White",sz:"XS — L",d:"Crisp poplin with a dropped waist and a removable self belt.",img:""},
+ {id:16,n:"Soft Blazer",p:199,was:239,k:"overshirt",c:"clothing",t:"",f:"#746f64",ink:"#413d37",cl:["#6f6a60","#23221f","#c7bfb2"],mat:"Wool Hopsack",col:"Taupe",sz:"S — XL",d:"Half-lined with patch pockets and a soft shoulder. Wears like a cardigan.",img:""}
+];
+const JOURNAL={k:"knit",f:"#c6c1b6",ink:"#7a756c",img:""};
+const SIZES=["XS","S","M","L","XL"];
+const money=v=>"£"+v.toFixed(2);
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const pad=n=>String(n).padStart(2,"0");
+
+/* ===================== showcase rail ===================== */
+const stage=$("#stage"), TAN=Math.tan(2.4*Math.PI/180);
+let active=0, nodes=[];
+P.forEach((p,i)=>{
+  const el=document.createElement("div");
+  el.className="hang"; el.dataset.i=i; el.innerHTML=gsvg(p);
+  stage.appendChild(el); nodes.push(el);
+});
+$("#railline").style.transform="rotate(-2.4deg)";
+$("#dots").innerHTML=P.map((_,i)=>`<button data-d="${i}" class="${i?'':'on'}" aria-label="Item ${i+1}"></button>`).join("");
+
+function layout(){
+  const W=stage.clientWidth, H=stage.clientHeight;
+  const phone=W<760, tab=W>=760&&W<1100;
+  let iw,xA,xS,step,maxVis;
+  if(phone){ iw=Math.min(W*.58,300); xA=(W-iw)*.5-W*.07; xS=W*.56; step=W*.15; maxVis=4; }
+  else if(tab){ iw=Math.min(W*.36,330); xA=W*.04; xS=W*.44; step=W*.1; maxVis=5; }
+  else { iw=Math.min(W*.3,360); xA=W*.05; xS=W*.40; step=W*.082; maxVis=7; }
+  const railY=H*(phone?.07:.08);
+  iw=Math.min(iw,Math.max(140,(H-railY-10)*0.75));   // 3:4 artwork must fit the stage
+  $("#railline").style.top=railY+"px";
+  nodes.forEach((el,i)=>{
+    let o=i-active; if(o<0) o+=P.length;
+    const vis=o<maxVis;
+    el.classList.toggle("off",!vis);
+    el.style.width=iw+"px"; el.style.zIndex=String(100-o);
+    const x = o===0 ? xA : xS+(o-1)*step;
+    const sc = o===0 ? 1 : 1-o*(phone?.055:.045);
+    const y = railY-(x+iw*.5)*TAN-14;
+    el.style.transform=`translate(${x}px,${y}px) scale(${sc})`;
+    el.style.opacity=vis?(o===0?1:Math.max(.25,1-o*.1)):0;
+  });
+}
+function detail(){
+  const p=P[active];
+  $("#detail").innerHTML=`
+    <p class="no">${pad(active+1)} / ${P.length}</p>
+    <h2>${p.n}</h2><div class="hr"></div>
+    <p class="desc">${p.d}</p>
+    <div class="specs">
+      <div><span>Material</span><span>${p.mat}</span></div>
+      <div><span>Colour</span><span>${p.col}</span></div>
+      <div><span>Size</span><span>${p.sz}</span></div>
+      <div><span>Price</span><span>${money(p.p)}</span></div>
+    </div>
+    <button class="view" data-open="${p.id}">View details <span style="font-size:13px">&#8599;</span></button>`;
+  $("#of").textContent=`${pad(active+1)} / ${P.length}`;
+  $("#ixa").textContent=pad(active+1); $("#ixb").textContent=P.length;
+  $$("#dots button").forEach((b,i)=>b.classList.toggle("on",i===active));
+}
+const go=n=>{active=(n+P.length)%P.length;layout();detail();};
+go(0);
+let rt; addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(layout,90)});
+addEventListener("orientationchange",()=>setTimeout(layout,260));
+$("#prev").onclick=()=>go(active-1);
+$("#next").onclick=()=>go(active+1);
+$("#dots").addEventListener("click",e=>{const b=e.target.closest("[data-d]");if(b)go(+b.dataset.d);});
+stage.addEventListener("click",e=>{const h=e.target.closest(".hang");if(h)go(+h.dataset.i);});
+let wt=0;
+stage.addEventListener("wheel",e=>{
+  if(Math.abs(e.deltaX)<Math.abs(e.deltaY))return;
+  e.preventDefault(); const now=Date.now(); if(now-wt<420)return; wt=now;
+  go(active+(e.deltaX>0?1:-1));
+},{passive:false});
+let tx=null;
+stage.addEventListener("touchstart",e=>tx=e.touches[0].clientX,{passive:true});
+stage.addEventListener("touchend",e=>{if(tx===null)return;
+  const dx=e.changedTouches[0].clientX-tx; if(Math.abs(dx)>46)go(active+(dx<0?1:-1)); tx=null;},{passive:true});
+addEventListener("keydown",e=>{
+  if($$(".drawer.on,.pdp.on,.menu.on,.search.on").length)return;
+  if(e.key==="ArrowRight")go(active+1); if(e.key==="ArrowLeft")go(active-1);
+});
+
+/* ===================== line-up + journal ===================== */
+$("#ltrack").innerHTML=P.map((p,i)=>`<article data-i="${i}">${gsvg(p)}<p>${p.n}</p></article>`).join("");
+$("#ltrack").addEventListener("click",e=>{const a=e.target.closest("[data-i]");if(!a)return;
+  go(+a.dataset.i); $("#showcase").scrollIntoView({behavior:"smooth"});});
+$("#jart").innerHTML=gsvg(JOURNAL);
+
+/* ===================== grid ===================== */
+let cat="all",sort="new",bag=[],liked=new Set();
+const CATS=[["all","All"],["clothing","Clothing"],["accessory","Accessory"],["new","New in"],["sale","Sale"]];
+$("#chips").innerHTML=CATS.map(([v,l])=>`<button data-c="${v}" class="${v==='all'?'on':''}">${l}</button>`).join("");
+function list(){
+  let r=P.filter(p=> cat==="all"?1 : cat==="new"?p.t==="New" : cat==="sale"?p.was : p.c===cat);
+  if(sort==="lo")r=[...r].sort((a,b)=>a.p-b.p);
+  if(sort==="hi")r=[...r].sort((a,b)=>b.p-a.p);
+  if(sort==="az")r=[...r].sort((a,b)=>a.n.localeCompare(b.n));
+  return r;
+}
+const card=p=>`<article class="card">
+  ${p.t?`<span class="tag">${p.t}</span>`:""}
+  <button class="heart ${liked.has(p.id)?'on':''}" data-like="${p.id}" aria-label="Save"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.6-7-9.6A4.4 4.4 0 0 1 12 7a4.4 4.4 0 0 1 7 3.4C19 15.4 12 20 12 20z"/></svg></button>
+  <div class="frame" data-open="${p.id}">${gsvg(p)}<button class="add" data-open="${p.id}">View details</button></div>
+  <div class="meta"><h4>${p.n}</h4><div class="p">${p.was?`<span class="was">${money(p.was)}</span>`:""}${money(p.p)}</div></div>
+  <div class="sw">${p.cl.map(c=>`<i style="background:${c}"></i>`).join("")}</div></article>`;
+const paint=()=>{ $("#grid").innerHTML=list().map(card).join(""); };
+paint();
+$("#chips").addEventListener("click",e=>{const b=e.target.closest("[data-c]");if(!b)return;
+  cat=b.dataset.c;$$("#chips button").forEach(x=>x.classList.toggle("on",x===b));paint();});
+$("#sort").onchange=e=>{sort=e.target.value;paint();};
+
+/* ===================== overlays ===================== */
+const open=el=>{el.classList.add("on");$("#scrim").classList.add("on");
+  $("#hd").classList.toggle("hide",el.id==="pdp");document.body.style.overflow="hidden";};
+const shut=()=>{$$(".drawer,.pdp,.menu,.search").forEach(e=>e.classList.remove("on"));
+  $("#scrim").classList.remove("on");$("#hd").classList.remove("hide");document.body.style.overflow="";};
+$("#scrim").onclick=shut;
+document.addEventListener("click",e=>{if(e.target.closest("[data-close]"))shut();});
+addEventListener("keydown",e=>{if(e.key==="Escape")shut();});
+$("#mb").onclick=()=>open($("#menu"));
+$("#sb").onclick=()=>{open($("#search"));setTimeout(()=>$("#sq").focus(),140);};
+$("#cb").onclick=()=>{drawCart();open($("#cart"));};
+let tt; const toast=m=>{const t=$("#toast");t.textContent=m;t.classList.add("on");clearTimeout(tt);tt=setTimeout(()=>t.classList.remove("on"),2200);};
+
+/* ===================== product panel + rotation viewer ===================== */
+const SPIN=["front","side","back","side"];
+let pSize=null,pId=null,frame=0,zoom=false;
+const TOP=["bomber","overshirt","tee","hoodie","coat","knit","dress"];
+
+function renderView(){
+  const p=P.find(x=>x.id===pId);
+  const v = zoom ? "zoom" : SPIN[frame];
+  $("#viewer").innerHTML=gsvg(p,{view:v});
+  $$("#views button").forEach(b=>b.classList.toggle("on",
+    zoom ? b.dataset.v==="zoom" : b.dataset.v===String(frame)));
+}
+function product(id){
+  const p=P.find(x=>x.id===id); pId=id; pSize=null; frame=0; zoom=false;
+  const out = p.id%5===0 ? "L" : null;
+  const zoomLabel = TOP.includes(p.k) ? "Sleeve" : "Detail";
+  $("#pdp").innerHTML=`
+   <div class="pdp-bar">
+     <span class="u" style="color:var(--faint)">${p.c} — ${pad(P.indexOf(p)+1)} / ${P.length}</span>
+     <button class="x" data-close>Close</button>
+   </div>
+   <div class="pdp-in">
+     <div class="pdp-media">
+       <div class="viewer" id="viewer"></div>
+       <div class="views" id="views">
+         <button data-v="0">Front</button>
+         <button data-v="1">Side</button>
+         <button data-v="2">Back</button>
+         <button data-v="zoom">${zoomLabel}</button>
+       </div>
+       <div class="spin"><i></i><span class="u">Drag to rotate</span><i></i></div>
+     </div>
+     <div class="pdp-info">
+       <p class="no">${p.mat} — ${p.col}</p>
+       <h2>${p.n}</h2>
+       <div class="pr">${p.was?`<span class="was">${money(p.was)}</span>`:""}${money(p.p)}</div>
+       <p class="dsc">${p.d}</p>
+       <div><p class="u" style="color:var(--faint);margin-bottom:10px">Colour — ${p.col}</p>
+         <div class="sw">${p.cl.map(c=>`<i style="background:${c};width:18px;height:18px"></i>`).join("")}</div></div>
+       <div><p class="u" style="color:var(--faint);margin-bottom:10px">Size</p>
+         <div class="sizes" id="sz">${SIZES.map(s=>`<button data-s="${s}" ${s===out?"disabled":""}>${s}</button>`).join("")}</div></div>
+       <button class="solid" id="padd">Add to bag</button>
+       <p class="note">Free delivery and returns — dispatched within two working days</p>
+       <div class="acc">
+         <details open><summary>Detail</summary><p>${p.d} Cut and finished in small runs, then pressed by hand before it leaves the studio.</p></details>
+         <details><summary>Fabric and care</summary><p>${p.mat}. Wash cold on a gentle cycle, dry flat away from direct heat, and press on the reverse.</p></details>
+         <details><summary>Fit</summary><p>Available ${p.sz}. The model stands at average height and wears the middle size. Between sizes, take the smaller for a close fit.</p></details>
+         <details><summary>Delivery and returns</summary><p>Complimentary delivery on every order. Return anything unworn within thirty days, with the return label included in the parcel.</p></details>
+       </div>
+     </div>
+   </div>`;
+  renderView();
+
+  $("#views").addEventListener("click",e=>{
+    const b=e.target.closest("[data-v]"); if(!b)return;
+    if(b.dataset.v==="zoom"){ zoom=true; } else { zoom=false; frame=+b.dataset.v; }
+    renderView();
+  });
+  $("#sz").addEventListener("click",e=>{
+    const b=e.target.closest("[data-s]"); if(!b||b.disabled)return;
+    pSize=b.dataset.s; $$("#sz button").forEach(x=>x.classList.toggle("on",x===b));
+  });
+  $("#padd").onclick=()=>{ if(!pSize){toast("Select a size");return;} addBag(pId,pSize); };
+
+  /* drag to rotate */
+  const vp=$("#viewer"); let sx=null,acc=0;
+  const start=x=>{sx=x;acc=0;vp.classList.add("drag");};
+  const move=x=>{ if(sx===null)return; const d=x-sx;
+    if(Math.abs(d)>46){ zoom=false; frame=(frame+(d>0?1:3))%4; renderView(); sx=x; } };
+  const end=()=>{sx=null;vp.classList.remove("drag");};
+  vp.addEventListener("pointerdown",e=>{vp.setPointerCapture(e.pointerId);start(e.clientX);});
+  vp.addEventListener("pointermove",e=>move(e.clientX));
+  vp.addEventListener("pointerup",end); vp.addEventListener("pointercancel",end);
+
+  open($("#pdp")); $("#pdp").scrollTop=0;
+}
+document.addEventListener("click",e=>{
+  const o=e.target.closest("[data-open]"); if(o){product(+o.dataset.open);return;}
+  const l=e.target.closest("[data-like]");
+  if(l){const id=+l.dataset.like; liked.has(id)?liked.delete(id):liked.add(id); l.classList.toggle("on",liked.has(id));}
+});
+
+/* ===================== bag ===================== */
+function addBag(id,size){
+  const key=id+"-"+size, ex=bag.find(b=>b.key===key);
+  ex?ex.q++:bag.push({key,id,size,q:1});
+  $("#cc").textContent="("+bag.reduce((s,b)=>s+b.q,0)+")";
+  drawCart(); shut(); toast("Added to bag"); open($("#cart"));
+}
+function drawCart(){
+  const body=$("#clines"), foot=$("#cfoot");
+  if(!bag.length){body.innerHTML='<p class="empty">Your bag is empty</p>';
+    foot.innerHTML='<button class="solid" data-close>Continue shopping</button>';return;}
+  body.innerHTML=bag.map(b=>{const p=P.find(x=>x.id===b.id);return `<div class="line">
+    <div class="th">${gsvg(p)}</div>
+    <div class="info"><b>${p.n}</b><small>Size ${b.size}</small><small>${money(p.p)}</small>
+      <div class="qty"><button data-q="-1" data-k="${b.key}">−</button><span>${b.q}</span><button data-q="1" data-k="${b.key}">+</button>
+      <button class="rm" data-rm="${b.key}">Remove</button></div></div></div>`;}).join("");
+  const sub=bag.reduce((s,b)=>s+P.find(x=>x.id===b.id).p*b.q,0);
+  foot.innerHTML=`<div class="tot"><span>Subtotal</span><span>${money(sub)}</span></div>
+    <div class="tot"><span>Delivery</span><span>Complimentary</span></div>
+    <div class="tot big"><span>Total</span><span>${money(sub)}</span></div>
+    <button class="solid" id="co">Checkout</button>`;
+  $("#co").onclick=()=>toast("Checkout is not wired up in this prototype");
+}
+$("#clines").addEventListener("click",e=>{
+  const q=e.target.closest("[data-q]"), r=e.target.closest("[data-rm]");
+  if(q){const b=bag.find(x=>x.key===q.dataset.k); b.q+= +q.dataset.q; if(b.q<1)bag=bag.filter(x=>x!==b);}
+  if(r) bag=bag.filter(x=>x.key!==r.dataset.rm);
+  if(q||r){$("#cc").textContent="("+bag.reduce((s,b)=>s+b.q,0)+")";drawCart();}
+});
+drawCart();
+
+/* ===================== search / news / scroll ===================== */
+$("#sq").addEventListener("input",e=>{
+  const v=e.target.value.trim().toLowerCase();
+  const r=v?P.filter(p=>(p.n+" "+p.c+" "+p.d+" "+p.mat+" "+p.col).toLowerCase().includes(v)):[];
+  $("#sres").innerHTML=v&&!r.length?'<p class="empty" style="grid-column:1/-1">Nothing matched</p>':r.map(card).join("");
+});
+$("#nf").addEventListener("submit",e=>{e.preventDefault();$("#nok").textContent="Thank you — look out for our next note";e.target.reset();});
+addEventListener("scroll",()=>$("#hd").classList.toggle("stuck",scrollY>40),{passive:true});
+const io=new IntersectionObserver(es=>es.forEach(x=>{if(x.isIntersecting){x.target.classList.add("in");io.unobserve(x.target);}}),{threshold:.14});
+$$(".reveal").forEach(e=>io.observe(e));
+</script>
+</body>
+</html>
